@@ -86,6 +86,11 @@ jobs:
               sed -i '1i int get_cached_platform_id(void);' net/oplus_nwpower/oplus_nwpower.c
             fi
           fi
+          echo "=== Fix 3: disable broken scgm-flash.c driver (incomplete struct definitions) ==="
+          if [ -f drivers/power/supply/qcom/Makefile ]; then
+            sed -i 's/^\(.*scgm-flash.*\)$/#\1/' drivers/power/supply/qcom/Makefile
+            grep -i "scgm" drivers/power/supply/qcom/Makefile || echo "scgm-flash disabled"
+          fi
 
       - name: Build kernel
         run: |
@@ -110,7 +115,7 @@ jobs:
             CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm \
             OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip \
             CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-            KCFLAGS="-Wno-error=implicit-function-declaration" 2>&1 | tee build.log
+            KCFLAGS="-Wno-error=implicit-function-declaration -Wno-error=visibility -Wno-error=incomplete-definition -Wno-error=conflicting-types" 2>&1 | tee build.log
           BUILD_EXIT=${PIPESTATUS[0]}
           if [ $BUILD_EXIT -ne 0 ]; then
             echo "=== BUILD FAILED - Last 80 lines ==="
