@@ -82,10 +82,20 @@ jobs:
           echo "=== Verify critical configs in final .config ==="
           grep -E "CONFIG_PID_NS|CONFIG_IPC_NS|CONFIG_CGROUP_DEVICE|CONFIG_DEVTMPFS|CONFIG_SYSVIPC|CONFIG_USER_NS|CONFIG_KSU|CONFIG_KPM|ANDROID_PARANOID" out/.config || true
           # Build - use system gcc for host tools, clang for cross-compilation
+          # Tee output to log so we can show errors on failure
+          set +e
           make -j$(nproc) O=out \
             CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm \
             OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip \
-            CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+            CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- 2>&1 | tee build.log
+          BUILD_EXIT=${PIPESTATUS[0]}
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo "=== BUILD FAILED - Last 80 lines ==="
+            tail -80 build.log
+            echo "=== Searching for error: lines ==="
+            grep -n "error:" build.log | tail -30
+            exit $BUILD_EXIT
+          fi
 
       - name: Verify build output
         run: |
