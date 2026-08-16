@@ -68,15 +68,23 @@ jobs:
       - name: Fix kernel source build errors
         run: |
           cd kernel
-          echo "=== Fix 1: qpnp-power-on.c - comment out log_kpd_event references (missing struct member) ==="
-          sed -i '/log_kpd_event/s/^/\/\//' drivers/input/misc/qpnp-power-on.c
-          grep -n "log_kpd_event" drivers/input/misc/qpnp-power-on.c | head -10 || echo "No more log_kpd_event references"
-          echo "=== Fix 2: oplus_nwpower.c - add forward declaration for get_cached_platform_id ==="
-          if ! grep -q "get_cached_platform_id" net/oplus_nwpower/oplus_nwpower.c 2>/dev/null; then
-            echo "File not found, skipping"
+          echo "=== Fix 1: qpnp-power-on.c - add missing log_kpd_event member to struct qpnp_pon ==="
+          # First undo any previous // comments on log_kpd_event lines
+          sed -i '/log_kpd_event/s|^//||' drivers/input/misc/qpnp-power-on.c
+          # Add log_kpd_event member to struct qpnp_pon definition
+          if grep -q "struct qpnp_pon {" drivers/input/misc/qpnp-power-on.c; then
+            sed -i '/struct qpnp_pon {/a\\tint log_kpd_event;' drivers/input/misc/qpnp-power-on.c
+            echo "Added log_kpd_event member to struct qpnp_pon"
           else
-            # Add forward declaration near top of file
-            sed -i '1i int get_cached_platform_id(void);' net/oplus_nwpower/oplus_nwpower.c
+            echo "struct qpnp_pon not found in .c, trying header files..."
+            grep -rl "struct qpnp_pon" drivers/ include/ 2>/dev/null | head -5
+          fi
+          grep -n "log_kpd_event" drivers/input/misc/qpnp-power-on.c | head -10
+          echo "=== Fix 2: oplus_nwpower.c - add forward declaration for get_cached_platform_id ==="
+          if [ -f net/oplus_nwpower/oplus_nwpower.c ]; then
+            if ! grep -q "get_cached_platform_id" net/oplus_nwpower/oplus_nwpower.c; then
+              sed -i '1i int get_cached_platform_id(void);' net/oplus_nwpower/oplus_nwpower.c
+            fi
           fi
 
       - name: Build kernel
