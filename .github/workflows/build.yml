@@ -125,6 +125,14 @@ jobs:
             exit $BUILD_EXIT
           fi
 
+      - name: Upload build log (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: kernel/build.log
+          if-no-files-found: ignore
+
       - name: Verify build output
         run: |
           ls -lh kernel/out/arch/arm64/boot/Image*
