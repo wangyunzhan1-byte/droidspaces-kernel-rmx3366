@@ -70,8 +70,11 @@ jobs:
           cd kernel
           export ARCH=arm64
           export SUBARCH=arm64
-          export HOSTCC=gcc
-          export HOSTCXX=g++
+          # Use system gcc for host tools (absolute path to avoid Proton Clang's gcc wrapper)
+          export HOSTCC=/usr/bin/gcc
+          export HOSTCXX=/usr/bin/g++
+          # Put system paths before clang to ensure host tools use system linker
+          export PATH="/usr/bin:/usr/local/bin:$PATH"
           # Generate .config from defconfig
           make O=out ${{ env.DEFCONFIG }}
           # Auto-resolve config dependencies (olddefconfig = accept defaults for new options)
