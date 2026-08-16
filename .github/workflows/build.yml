@@ -86,10 +86,11 @@ jobs:
               sed -i '1i int get_cached_platform_id(void);' net/oplus_nwpower/oplus_nwpower.c
             fi
           fi
-          echo "=== Fix 3: disable broken scgm-flash.c driver (incomplete struct definitions) ==="
+          echo "=== Fix 3: disable broken schgm-flash.c driver (incomplete struct definitions) ==="
           if [ -f drivers/power/supply/qcom/Makefile ]; then
+            sed -i 's/^\(.*schgm-flash.*\)$/#\1/' drivers/power/supply/qcom/Makefile
             sed -i 's/^\(.*scgm-flash.*\)$/#\1/' drivers/power/supply/qcom/Makefile
-            grep -i "scgm" drivers/power/supply/qcom/Makefile || echo "scgm-flash disabled"
+            grep -i "schgm\|scgm" drivers/power/supply/qcom/Makefile || echo "flash drivers disabled"
           fi
 
       - name: Build kernel
