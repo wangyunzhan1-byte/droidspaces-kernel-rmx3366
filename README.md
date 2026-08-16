@@ -1,6 +1,6 @@
-# Droidspaces Kernel for realme GT Master Explorer (RMX3366)
+# Droidspaces + SukiSU Kernel for realme GT Master Explorer (RMX3366)
 
-自动编译支持 Droidspaces 的内核，用于 realme GT 大师探索版 (RMX3366 / rivena / SM8250)。
+自动编译同时支持 **Droidspaces**（Linux 容器）和 **SukiSU Ultra**（内核级 Root）的内核，用于 realme GT 大师探索版 (RMX3366 / rivena / SM8250)。
 
 ## 设备信息
 - 型号: RMX3366

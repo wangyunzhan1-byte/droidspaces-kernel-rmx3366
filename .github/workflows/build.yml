@@ -1,4 +1,4 @@
-name: Build Droidspaces Kernel for RMX3366
+name: Build Droidspaces + SukiSU Kernel for RMX3366
 
 on:
   push:
@@ -42,7 +42,7 @@ jobs:
             ../droidspaces.config
           cp .config arch/arm64/configs/${{ env.DEFCONFIG }}
           echo "=== Config merge result ==="
-          grep -E "CONFIG_PID_NS|CONFIG_IPC_NS|CONFIG_CGROUP_DEVICE|CONFIG_DEVTMPFS|CONFIG_SYSVIPC|CONFIG_USER_NS|ANDROID_PARANOID" \
+          grep -E "CONFIG_PID_NS|CONFIG_IPC_NS|CONFIG_CGROUP_DEVICE|CONFIG_DEVTMPFS|CONFIG_SYSVIPC|CONFIG_USER_NS|ANDROID_PARANOID|CONFIG_KSU|CONFIG_KPM" \
             arch/arm64/configs/${{ env.DEFCONFIG }} || true
 
       - name: Apply Droidspaces kernel patches
@@ -54,6 +54,16 @@ jobs:
           echo "=== Applying patch 2: cgroup prefix fix ==="
           patch -p1 --forward < ../patches/02.fix_restore_cgroup_file_prefix_handling.patch || \
             echo "Patch 2 skipped (may already be applied or needs manual merge)"
+
+      - name: Integrate SukiSU Ultra (kernel-based root)
+        run: |
+          cd kernel
+          echo "=== Integrating SukiSU Ultra ==="
+          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
+          echo "=== SukiSU integration complete ==="
+          ls -la drivers/kernelsu/ 2>/dev/null || echo "kernelsu dir check"
+          echo "=== Verify KSU config ==="
+          grep -E "CONFIG_KSU|CONFIG_KPM" arch/arm64/configs/${{ env.DEFCONFIG }} || true
 
       - name: Build kernel
         run: |
