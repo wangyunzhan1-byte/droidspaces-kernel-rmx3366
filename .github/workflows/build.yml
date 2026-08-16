@@ -33,17 +33,17 @@ jobs:
           git clone --depth=1 -b ${{ env.KERNEL_BRANCH }} \
             https://github.com/${{ env.KERNEL_REPO }}.git kernel
 
-      - name: Apply Droidspaces kernel config
+      - name: Apply Droidspaces + SukiSU kernel config
         run: |
           cd kernel
-          # Merge config fragment into defconfig
-          scripts/kconfig/merge_config.sh \
-            arch/arm64/configs/${{ env.DEFCONFIG }} \
-            ../droidspaces.config
-          cp .config arch/arm64/configs/${{ env.DEFCONFIG }}
-          echo "=== Config merge result ==="
-          grep -E "CONFIG_PID_NS|CONFIG_IPC_NS|CONFIG_CGROUP_DEVICE|CONFIG_DEVTMPFS|CONFIG_SYSVIPC|CONFIG_USER_NS|ANDROID_PARANOID|CONFIG_KSU|CONFIG_KPM" \
-            arch/arm64/configs/${{ env.DEFCONFIG }} || true
+          DEFCONFIG_PATH="arch/arm64/configs/${{ env.DEFCONFIG }}"
+          echo "=== Removing existing conflicting configs ==="
+          # Remove existing entries that we want to override
+          sed -i '/^CONFIG_SYSVIPC=/d; /^CONFIG_POSIX_MQUEUE=/d; /^CONFIG_PID_NS=/d; /^CONFIG_IPC_NS=/d; /^CONFIG_USER_NS=/d; /^CONFIG_CGROUP_DEVICE=/d; /^CONFIG_CGROUP_PIDS=/d; /^CONFIG_CGROUP_NET_PRIO=/d; /^CONFIG_DEVTMPFS=/d; /^CONFIG_FW_LOADER_COMPRESS=/d; /^CONFIG_BRIDGE_NETFILTER=/d; /^CONFIG_NF_TABLES=/d; /^CONFIG_NETFILTER_XT_TARGET_MASQUERADE=/d; /^CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=/d; /^CONFIG_NF_CONNTRACK_NETLINK=/d; /^CONFIG_NF_CONNTRACK_IPV4=/d; /^CONFIG_ANDROID_PARANOID_NETWORK=/d; /^# CONFIG_ANDROID_PARANOID_NETWORK/d; /^CONFIG_KSU=/d; /^CONFIG_KPM=/d' "$DEFCONFIG_PATH"
+          echo "=== Appending Droidspaces + SukiSU config fragment ==="
+          cat ../droidspaces.config >> "$DEFCONFIG_PATH"
+          echo "=== Defconfig tail (last 30 lines) ==="
+          tail -30 "$DEFCONFIG_PATH"
 
       - name: Apply Droidspaces kernel patches
         run: |
@@ -70,7 +70,13 @@ jobs:
           cd kernel
           export ARCH=arm64
           export SUBARCH=arm64
+          # Generate .config from defconfig
           make O=out ${{ env.DEFCONFIG }}
+          # Auto-resolve config dependencies (olddefconfig = accept defaults for new options)
+          make O=out olddefconfig
+          echo "=== Verify critical configs in final .config ==="
+          grep -E "CONFIG_PID_NS|CONFIG_IPC_NS|CONFIG_CGROUP_DEVICE|CONFIG_DEVTMPFS|CONFIG_SYSVIPC|CONFIG_USER_NS|CONFIG_KSU|CONFIG_KPM|ANDROID_PARANOID" out/.config || true
+          # Build
           make -j$(nproc) O=out \
             CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm \
             OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip \
