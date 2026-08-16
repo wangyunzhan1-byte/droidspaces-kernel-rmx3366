@@ -1,0 +1,99 @@
+name: Build Droidspaces Kernel for RMX3366
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  DEFCONFIG: vendor/kona-perf_defconfig
+  KERNEL_BRANCH: phoeniX-AOSP
+  KERNEL_REPO: RMX3366-Development/android_kernel_realme_sm8250
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repo (config + patches)
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential bc cpio python3 git lzop libssl-dev \
+            flex bison libelf-dev curl zip
+
+      - name: Clone Proton Clang toolchain
+        run: |
+          git clone --depth=1 https://github.com/kdrag0n/proton-clang.git clang
+          echo "$(pwd)/clang/bin" >> $GITHUB_PATH
+
+      - name: Clone kernel source
+        run: |
+          git clone --depth=1 -b ${{ env.KERNEL_BRANCH }} \
+            https://github.com/${{ env.KERNEL_REPO }}.git kernel
+
+      - name: Apply Droidspaces kernel config
+        run: |
+          cd kernel
+          # Merge config fragment into defconfig
+          scripts/kconfig/merge_config.sh \
+            arch/arm64/configs/${{ env.DEFCONFIG }} \
+            ../droidspaces.config
+          cp .config arch/arm64/configs/${{ env.DEFCONFIG }}
+          echo "=== Config merge result ==="
+          grep -E "CONFIG_PID_NS|CONFIG_IPC_NS|CONFIG_CGROUP_DEVICE|CONFIG_DEVTMPFS|CONFIG_SYSVIPC|CONFIG_USER_NS|ANDROID_PARANOID" \
+            arch/arm64/configs/${{ env.DEFCONFIG }} || true
+
+      - name: Apply Droidspaces kernel patches
+        run: |
+          cd kernel
+          echo "=== Applying patch 1: xt_qtaguid fix ==="
+          patch -p1 --forward < ../patches/01.fix_kernel_panic_in_xt_qtaguid.patch || \
+            echo "Patch 1 skipped (may already be applied or needs manual merge)"
+          echo "=== Applying patch 2: cgroup prefix fix ==="
+          patch -p1 --forward < ../patches/02.fix_restore_cgroup_file_prefix_handling.patch || \
+            echo "Patch 2 skipped (may already be applied or needs manual merge)"
+
+      - name: Build kernel
+        run: |
+          cd kernel
+          export ARCH=arm64
+          export SUBARCH=arm64
+          make O=out ${{ env.DEFCONFIG }}
+          make -j$(nproc) O=out \
+            CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm \
+            OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip \
+            CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+
+      - name: Verify build output
+        run: |
+          ls -lh kernel/out/arch/arm64/boot/Image*
+          file kernel/out/arch/arm64/boot/Image
+
+      - name: Package with AnyKernel3
+        run: |
+          git clone --depth=1 https://github.com/osm0sis/AnyKernel3.git AnyKernel
+          cp kernel/out/arch/arm64/boot/Image.gz AnyKernel/zImage 2>/dev/null || \
+            cp kernel/out/arch/arm64/boot/Image AnyKernel/zImage
+          cd AnyKernel
+          # Disable device check for flexibility
+          sed -i 's/do.devicechecks=1/do.devicechecks=0/g' anykernel.sh
+          sed -i 's/do.cleanup=0/do.cleanup=1/g' anykernel.sh
+          # Set device name
+          sed -i 's/device.name1=placeholder/device.name1=RMX3366/g' anykernel.sh
+          zip -r9 ../droidspaces-kernel-rmx3366.zip * -x .git README.md *placeholder
+
+      - name: Upload kernel image
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-image
+          path: |
+            kernel/out/arch/arm64/boot/Image
+            kernel/out/arch/arm64/boot/Image.gz
+
+      - name: Upload flashable zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: droidspaces-kernel-rmx3366-flashable
+          path: droidspaces-kernel-rmx3366.zip
