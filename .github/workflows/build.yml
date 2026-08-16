@@ -92,6 +92,11 @@ jobs:
             sed -i 's/^\(.*scgm-flash.*\)$/#\1/' drivers/power/supply/qcom/Makefile
             grep -i "schgm\|scgm" drivers/power/supply/qcom/Makefile || echo "flash drivers disabled"
           fi
+          echo "=== Fix 4: add missing NR_IONCACHE_PAGES to zone_stat_item enum ==="
+          if [ -f include/linux/mmzone.h ]; then
+            grep -q "NR_IONCACHE_PAGES" include/linux/mmzone.h || sed -i 's/NR_VM_ZONE_STAT_ITEMS };/NR_IONCACHE_PAGES, NR_VM_ZONE_STAT_ITEMS };/' include/linux/mmzone.h
+            grep "NR_IONCACHE_PAGES" include/linux/mmzone.h && echo "NR_IONCACHE_PAGES added"
+          fi
 
       - name: Build kernel
         run: |
