@@ -70,13 +70,15 @@ jobs:
           cd kernel
           export ARCH=arm64
           export SUBARCH=arm64
+          export HOSTCC=gcc
+          export HOSTCXX=g++
           # Generate .config from defconfig
           make O=out ${{ env.DEFCONFIG }}
           # Auto-resolve config dependencies (olddefconfig = accept defaults for new options)
           make O=out olddefconfig
           echo "=== Verify critical configs in final .config ==="
           grep -E "CONFIG_PID_NS|CONFIG_IPC_NS|CONFIG_CGROUP_DEVICE|CONFIG_DEVTMPFS|CONFIG_SYSVIPC|CONFIG_USER_NS|CONFIG_KSU|CONFIG_KPM|ANDROID_PARANOID" out/.config || true
-          # Build
+          # Build - use system gcc for host tools, clang for cross-compilation
           make -j$(nproc) O=out \
             CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm \
             OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip \
