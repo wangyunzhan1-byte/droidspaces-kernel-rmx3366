@@ -164,7 +164,7 @@ jobs:
           sed -i 's/device.name3=placeholder/device.name3=rmx3366/g' anykernel.sh
           sed -i 's/device.name4=placeholder/device.name4=qcom,rmx3366/g' anykernel.sh
           # Fix boot partition detection: replace static path with dynamic find
-          sed -i 's|^block=.*|block=$(find /dev/block -name boot 2>/dev/null | head -1); [ -z "$block" ] \&\& block=/dev/block/bootdevice/by-name/boot; echo "Using boot partition: $block"|' anykernel.sh
+          sed -i 's#^block=.*#block=$(find /dev/block -name boot 2>/dev/null | head -1); [ -z "$block" ] \&\& block=/dev/block/bootdevice/by-name/boot; echo "Using boot partition: $block"#' anykernel.sh
           zip -r9 ../droidspaces-kernel-rmx3366.zip * -x .git README.md *placeholder
 
       - name: Upload kernel image
