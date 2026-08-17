@@ -66,17 +66,11 @@ jobs:
       - name: Fix kernel source build errors
         run: |
           cd kernel
-          echo "=== Fix 0: create missing min-tool-version.sh for resukisu branch ==="
+          echo "=== Fix 0: copy missing min-tool-version.sh for resukisu branch ==="
           if [ ! -f scripts/min-tool-version.sh ]; then
-            cat > scripts/min-tool-version.sh << 'EOF'
-#!/bin/sh
-case "$1" in
-  binutils) echo 2.27 ;;
-  *) echo 0 ;;
-esac
-EOF
+            cp $GITHUB_WORKSPACE/patches/min-tool-version.sh scripts/min-tool-version.sh
             chmod +x scripts/min-tool-version.sh
-            echo "min-tool-version.sh created"
+            echo "min-tool-version.sh copied"
           fi
           echo "=== Fix 1: qpnp-power-on.c - add missing log_kpd_event member to struct qpnp_pon ==="
           # First undo any previous // comments on log_kpd_event lines
