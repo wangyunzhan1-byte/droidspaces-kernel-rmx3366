@@ -155,11 +155,14 @@ jobs:
           cp kernel/out/arch/arm64/boot/Image.gz AnyKernel/zImage 2>/dev/null || \
             cp kernel/out/arch/arm64/boot/Image AnyKernel/zImage
           cd AnyKernel
-          # Disable device check for flexibility
-          sed -i 's/do.devicechecks=1/do.devicechecks=0/g' anykernel.sh
+          # Disable device check (correct variable name is do.devicecheck, no s)
+          sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
           sed -i 's/do.cleanup=0/do.cleanup=1/g' anykernel.sh
-          # Set device name
+          # Set multiple possible device names for RMX3366 variants
           sed -i 's/device.name1=placeholder/device.name1=RMX3366/g' anykernel.sh
+          sed -i 's/device.name2=placeholder/device.name2=RMX3366L1/g' anykernel.sh
+          sed -i 's/device.name3=placeholder/device.name3=rmx3366/g' anykernel.sh
+          sed -i 's/device.name4=placeholder/device.name4=qcom,rmx3366/g' anykernel.sh
           zip -r9 ../droidspaces-kernel-rmx3366.zip * -x .git README.md *placeholder
 
       - name: Upload kernel image
