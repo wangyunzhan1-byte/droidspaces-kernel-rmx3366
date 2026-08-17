@@ -1,40 +1,82 @@
-/* Stub implementations for missing OPLUS symbols - returns 0 */
 .text
-.macro STUB name
-.global \name
-.type \name, %function
-\name:
+.global hans_report
+hans_report:
 	mov	x0, #0
 	ret
-.size \name, .-\name
-.endm
-.macro STUBVAR name
-.global \name
-.type \name, %object
+.global get_boot_mode
+get_boot_mode:
+	mov	x0, #0
+	ret
+.global get_project
+get_project:
+	mov	x0, #0
+	ret
 .bss
 .align 3
-\name:
+.global oplus_daily_build
+oplus_daily_build:
 	.zero 8
-.size \name, 8
+.global kswapd_threads
+kswapd_threads:
+	.zero 8
 .text
-.endm
-STUB(hans_report)
-STUB(get_boot_mode)
-STUB(get_project)
-STUBVAR(oplus_daily_build)
-STUBVAR(kswapd_threads)
-STUB(get_cached_platform_id)
-STUB(oplus_vooc_adapter_update_is_rx_gpio)
-STUB(oplus_vooc_adapter_update_is_tx_gpio)
-STUB(is_confidential)
-STUB(qpnp_is_power_off_charging)
-STUB(oplus_wpc_set_wrx_en_value)
-STUB(opchg_set_pd_sdp)
-STUB(black_screen_timer_restart)
-STUB(bright_screen_timer_restart)
-STUB(oplus_vooc_get_fastchg_started)
-STUB(oplus_vooc_get_fastchg_ing)
-STUB(oplus_gauge_init)
-STUB(read_range_data_from_node)
-STUB(get_PCB_Version)
-STUB(get_eng_version)
+.global get_cached_platform_id
+get_cached_platform_id:
+	mov	x0, #0
+	ret
+.global oplus_vooc_adapter_update_is_rx_gpio
+oplus_vooc_adapter_update_is_rx_gpio:
+	mov	x0, #0
+	ret
+.global oplus_vooc_adapter_update_is_tx_gpio
+oplus_vooc_adapter_update_is_tx_gpio:
+	mov	x0, #0
+	ret
+.global is_confidential
+is_confidential:
+	mov	x0, #0
+	ret
+.global qpnp_is_power_off_charging
+qpnp_is_power_off_charging:
+	mov	x0, #0
+	ret
+.global oplus_wpc_set_wrx_en_value
+oplus_wpc_set_wrx_en_value:
+	mov	x0, #0
+	ret
+.global opchg_set_pd_sdp
+opchg_set_pd_sdp:
+	mov	x0, #0
+	ret
+.global black_screen_timer_restart
+black_screen_timer_restart:
+	mov	x0, #0
+	ret
+.global bright_screen_timer_restart
+bright_screen_timer_restart:
+	mov	x0, #0
+	ret
+.global oplus_vooc_get_fastchg_started
+oplus_vooc_get_fastchg_started:
+	mov	x0, #0
+	ret
+.global oplus_vooc_get_fastchg_ing
+oplus_vooc_get_fastchg_ing:
+	mov	x0, #0
+	ret
+.global oplus_gauge_init
+oplus_gauge_init:
+	mov	x0, #0
+	ret
+.global read_range_data_from_node
+read_range_data_from_node:
+	mov	x0, #0
+	ret
+.global get_PCB_Version
+get_PCB_Version:
+	mov	x0, #0
+	ret
+.global get_eng_version
+get_eng_version:
+	mov	x0, #0
+	ret
