@@ -80,3 +80,15 @@ get_PCB_Version:
 get_eng_version:
 	mov	x0, #0
 	ret
+.global switch_headset_state
+switch_headset_state:
+	mov	x0, #0
+	ret
+.global opticalfp_irq_handler_register
+opticalfp_irq_handler_register:
+	mov	x0, #0
+	ret
+.global is_project
+is_project:
+	mov	x0, #0
+	ret
