@@ -58,12 +58,8 @@ jobs:
       - name: Integrate SukiSU Ultra (kernel-based root)
         run: |
           cd kernel
-          echo "=== Integrating SukiSU Ultra ==="
-          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
-          echo "=== SukiSU integration complete ==="
-          ls -la drivers/kernelsu/ 2>/dev/null || echo "kernelsu dir check"
-          echo "=== Verify KSU config ==="
-          grep -E "CONFIG_KSU|CONFIG_KPM" arch/arm64/configs/${{ env.DEFCONFIG }} || true
+          echo "=== SukiSU TEMPORARILY DISABLED for boot testing ==="
+          echo "Skipping SukiSU integration to verify kernel boot"
 
       - name: Fix kernel source build errors
         run: |
